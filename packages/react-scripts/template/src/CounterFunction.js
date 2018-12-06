@@ -13,10 +13,10 @@ Counter = window.__assign(
       const [value, dispatch] = useReducer((v, a) => {
         return a === 'inc' ? v + 1 : v;
       }, 0);
-      useLayoutEffect(() => {
-        const id = setInterval(() => dispatch('inc'), 1000);
-        return () => clearInterval(id);
-      }, []);
+      // useLayoutEffect(() => {
+      //   const id = setInterval(() => dispatch('inc'), 1000);
+      //   return () => clearInterval(id);
+      // }, []);
       return (
         <span>
           {value}

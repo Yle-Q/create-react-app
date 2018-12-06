@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { Component } from 'react';
 
 let HotContext = React.createContext();
 let _invalidate;
@@ -8,11 +8,8 @@ export function HotContainer({ children }) {
   return <HotContext.Provider value={inc}>{children}</HotContext.Provider>;
 }
 
-let CurrentOwner =
-  React.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED.ReactCurrentOwner;
-function readContext(Ctx) {
-  CurrentOwner.currentDispatcher.readContext(Ctx);
-}
+// TODO: reenable
+require('react-error-overlay').stopReportingRuntimeErrors();
 
 let idToPersistentType = new Map();
 let idToRawFunction = new Map();
@@ -37,6 +34,28 @@ function getKind(type) {
   return 'other';
 }
 
+class SafeCall extends Component {
+  static contextType = HotContext;
+  state = { key: 0 };
+  componentDidCatch(err) {
+    this.setState(state => ({
+      key: state.key + 1,
+    }));
+  }
+  render() {
+    return <Call key={this.state.key} {...this.props} />;
+  }
+}
+
+function Call({ props, id }) {
+  React.useContext(HotContext);
+  let impl = idToRawFunction.get(id);
+  if (impl.toString().indexOf('// !') !== -1) {
+    // TODO
+  }
+  return impl(props);
+}
+
 function init(rawType, id) {
   let kind = getKind(rawType);
   switch (kind) {
@@ -47,10 +66,7 @@ function init(rawType, id) {
       idToRawFunction.set(id, rawType);
       const proxy = new Proxy(rawType, {
         apply(target, thisArg, args) {
-          let freshRawType = idToRawFunction.get(id);
-          let ret = freshRawType.apply(null, args);
-          readContext(HotContext);
-          return ret;
+          return <SafeCall id={id} props={args[0]} />;
         },
       });
       proxies.add(proxy);

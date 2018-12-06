@@ -13,15 +13,20 @@ let HCF;
 let HFC;
 let HFF;
 
+let winRnd = window.RND || (window.RND = Math.random());
+
 let Hello = window.__assign(module, 'Hello', function Hello() {
   const [value] = useState(Math.random());
+  const [x] = useState('lox'); // !
 
   return (
     <Suspense fallback={<div />}>
       <h3>
+        {winRnd}
+        <br />
         {value.toString().slice(0, 5)}
         <br />
-        hello world!!
+        hello world ({x.slice()})
         <br />
         class: <CounterClass hocChild />
         <br />
