@@ -375,8 +375,8 @@ module.exports = function(webpackEnv) {
                 ),
                 // @remove-on-eject-end
                 plugins: [
-                  require.resolve('./thing'),
                   require.resolve('./react-fresh/babel'),
+                  require.resolve('./thing'),
                   [
                     require.resolve('babel-plugin-named-asset-import'),
                     {

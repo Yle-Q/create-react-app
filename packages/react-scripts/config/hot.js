@@ -90,6 +90,7 @@ function __register__(type, id) {
   knownTypes.add(type);
   const fullID = currentModuleID + '%' + id;
   ReactFreshRuntime.register(type, fullID);
+  scheduleHotReload();
 }
 window.__register__ = __register__;
 
