@@ -109,7 +109,7 @@ checkBrowsers(paths.appPath, isInteractive)
       devSocket,
       urls,
       useYarn,
-      useTypeScript,
+      useTypeScript: false,
       webpack,
     });
     // Load proxy config
