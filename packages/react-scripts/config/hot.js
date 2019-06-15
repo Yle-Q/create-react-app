@@ -44,8 +44,11 @@ const REACT_FORWARD_REF_TYPE = Symbol.for('react.forward_ref');
 const REACT_MEMO_TYPE = Symbol.for('react.memo');
 
 window.__shouldAccept__ = function(exports) {
+  __register__(exports, '%%exports%%');
+
   for (let key in exports) {
     const val = exports[key];
+    __register__(val, '%%exports%%' + key);
     if (!val) {
       return false;
     }
@@ -203,7 +206,7 @@ const layerStyles = {
 
 const rectStyles = {
   position: 'absolute',
-  backgroundColor: 'rgba(0, 0, 0, 0.25)',
+  backgroundColor: 'rgba(0, 0, 0, 0.1)',
 };
 
 let l;
