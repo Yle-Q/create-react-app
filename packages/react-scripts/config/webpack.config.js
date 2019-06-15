@@ -279,6 +279,7 @@ module.exports = function(webpackEnv) {
         .map(ext => `.${ext}`)
         .filter(ext => useTypeScript || !ext.includes('ts')),
       alias: {
+        react: __dirname + '/react-wonky',
         'react-dom': __dirname + '/react-dom-wonky',
         scheduler: __dirname + '/scheduler-wonky',
         // Support React Native Web

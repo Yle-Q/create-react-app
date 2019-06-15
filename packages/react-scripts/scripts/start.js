@@ -32,6 +32,7 @@ verifyTypeScriptSetup();
 // @remove-on-eject-end
 
 const fs = require('fs');
+const path = require('path');
 const chalk = require('react-dev-utils/chalk');
 const webpack = require('webpack');
 const WebpackDevServer = require('webpack-dev-server');
@@ -101,6 +102,7 @@ checkBrowsers(paths.appPath, isInteractive)
         devServer.sockWrite(devServer.sockets, 'warnings', warnings),
       errors: errors =>
         devServer.sockWrite(devServer.sockets, 'errors', errors),
+      edit: file => devServer.sockWrite(devServer.sockets, 'edit', file),
     };
     // Create a webpack compiler that is configured with custom messages.
     const compiler = createCompiler({
@@ -112,6 +114,10 @@ checkBrowsers(paths.appPath, isInteractive)
       useTypeScript: false,
       webpack,
     });
+    compiler.hooks.invalid.tap('invalid', file => {
+      devSocket.edit('./' + path.relative(process.cwd(), file));
+    });
+
     // Load proxy config
     const proxySetting = require(paths.appPackageJson).proxy;
     const proxyConfig = prepareProxy(proxySetting, paths.appPublic);

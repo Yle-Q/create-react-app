@@ -217,6 +217,9 @@ connection.onmessage = function(e) {
     case 'errors':
       handleErrors(message.data);
       break;
+    case 'edit':
+      __onEdit__(message.data);
+      break;
     default:
     // Do nothing.
   }

@@ -9,8 +9,10 @@ window.__setCurrentModule__ = function(m) {
 };
 
 let scheduleHotUpdate;
+let findHostNodesForHotUpdate;
 let roots = new Set();
 let knownTypes = new WeakSet();
+let idsByFile = new Map();
 
 if (!window.__REACT_DEVTOOLS_GLOBAL_HOOK__) {
   window.__REACT_DEVTOOLS_GLOBAL_HOOK__ = {
@@ -29,6 +31,7 @@ function patchHook(method, intercept) {
 }
 patchHook('inject', injected => {
   scheduleHotUpdate = injected.scheduleHotUpdate;
+  findHostNodesForHotUpdate = injected.findHostNodesForHotUpdate;
 });
 patchHook('onCommitFiberRoot', (id, root) => {
   // TODO: properly track roots
@@ -89,6 +92,13 @@ function __register__(type, id) {
   }
   knownTypes.add(type);
   const fullID = currentModuleID + '%' + id;
+
+  let ids = idsByFile.get(currentModuleID);
+  if (!ids) {
+    idsByFile.set(currentModuleID, new Set());
+  }
+  idsByFile.get(currentModuleID).add(fullID);
+
   ReactFreshRuntime.register(type, fullID);
   scheduleHotReload();
 }
@@ -116,8 +126,37 @@ function __signature__() {
 }
 window.__signature__ = __signature__;
 
+window.__onEdit__ = function(file) {
+  const ids = idsByFile.get(file);
+  if (!ids) {
+    return;
+  }
+  let families = new Set();
+  ids.forEach(id => {
+    const family = ReactFreshRuntime.getFamilyByID(id);
+    if (family) {
+      families.add(family);
+    }
+  });
+
+  let nodes = new Set();
+  roots.forEach(root => {
+    findHostNodesForHotUpdate(root, Array.from(families)).forEach(node => {
+      nodes.add(node);
+    });
+  });
+  clearTimeout(stuckHandle);
+  highlightNodes(Array.from(nodes));
+  stuckHandle = setTimeout(() => {
+    highlightNodes([]);
+  }, 3000);
+};
+
+let stuckHandle;
+
 let waitHandle = null;
 function scheduleHotReload() {
+  clearTimeout(stuckHandle);
   if (!waitHandle) {
     waitHandle = setTimeout(() => {
       waitHandle = null;
@@ -126,6 +165,7 @@ function scheduleHotReload() {
       if (update === null) {
         return;
       }
+      highlightNodes([]);
       roots.forEach(root => scheduleHotUpdate(root, update));
       // TODO
     }, 30);
@@ -148,12 +188,6 @@ function highlightNodes(nodes) {
     });
     layer.appendChild(div);
   }
-  layer.style.transition = 'none';
-  layer.style.opacity = 1;
-  setTimeout(() => {
-    layer.style.transition = 'opacity 2s ease-in';
-    layer.style.opacity = 0;
-  }, 100);
 }
 
 const layerStyles = {
@@ -169,8 +203,7 @@ const layerStyles = {
 
 const rectStyles = {
   position: 'absolute',
-  border: '1px rgb(97, 218, 251) solid',
-  backgroundColor: 'rgba(97, 218, 251, 0.1)',
+  backgroundColor: 'rgba(0, 0, 0, 0.25)',
 };
 
 let l;
